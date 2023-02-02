@@ -7,21 +7,25 @@ import 'package:shelf/shelf.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:pedantic/pedantic.dart';
+import 'package:args/args.dart';
 
 const String LocalHost = 'localhost';
 const int LocalPort = 3000;
-const String TargetUrl = 'https://devapi.myones.net/';
+const String TargetUrl = 'https://api.ones.cn/';
 
-Future main() async {
+void main(List<String> arguments) async {
+  final argParser = new ArgParser()
+    ..addOption('target', abbr: 't', defaultsTo: TargetUrl);
+  final argResults = argParser.parse(arguments);
+  final String targetUrl = argResults['target'];
   final server = await shelf_io.serve(
     // proxyHandler(TargetUrl),
-    customProxyHandler(TargetUrl),
+    customProxyHandler(targetUrl),
     LocalHost,
     LocalPort,
   );
-
   configServer(server);
-  print('Serving at http://${server.address.host}:${server.port}');
+  print('$targetUrl 的本地代理地址是 http://${server.address.host}:${server.port}');
 }
 
 void configServer(HttpServer server) {
@@ -33,7 +37,8 @@ void configServer(HttpServer server) {
   server.defaultResponseHeaders.add('Access-Control-Max-Age', '3600');
 }
 
-Handler customProxyHandler(url, {
+Handler customProxyHandler(
+  url, {
   http.Client? client,
   String? proxyName,
 }) {
@@ -91,7 +96,7 @@ Handler customProxyHandler(url, {
     if (clientResponse.isRedirect &&
         clientResponse.headers.containsKey('location')) {
       var location =
-      requestUrl.resolve(clientResponse.headers!['location']!).toString();
+          requestUrl.resolve(clientResponse.headers!['location']!).toString();
       if (p.url.isWithin(uri.toString(), location)) {
         clientResponse.headers['location'] =
             '/' + p.url.relative(location, from: uri.toString());
