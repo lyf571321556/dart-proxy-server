@@ -15,14 +15,16 @@ const String TargetUrl = 'https://api.ones.cn/';
 
 void main(List<String> arguments) async {
   final argParser = ArgParser()
-    ..addOption('target', abbr: 't', defaultsTo: TargetUrl);
+    ..addOption('target', abbr: 't', defaultsTo: TargetUrl)
+    ..addOption('port', abbr: 'p', defaultsTo: LocalPort.toString());
   final argResults = argParser.parse(arguments);
   final String targetUrl = argResults['target'];
+  final port = int.parse(argResults['port']);
   final server = await shelf_io.serve(
     // proxyHandler(TargetUrl),
     customProxyHandler(targetUrl),
     LocalHost,
-    LocalPort,
+    port,
   );
   configServer(server);
   print('$targetUrl 的本地代理地址是 http://${server.address.host}:${server.port}');
@@ -96,7 +98,7 @@ Handler customProxyHandler(
     if (clientResponse.isRedirect &&
         clientResponse.headers.containsKey('location')) {
       var location =
-          requestUrl.resolve(clientResponse.headers!['location']!).toString();
+          requestUrl.resolve(clientResponse.headers['location']!).toString();
       if (p.url.isWithin(uri.toString(), location)) {
         clientResponse.headers['location'] =
             '/' + p.url.relative(location, from: uri.toString());
@@ -117,7 +119,7 @@ void _addHeader(Map<String, String>? headers, String name, String value) {
   if (headers.containsKey(name)) {
     headers[name] = (headers[name])! + ', $value';
   } else {
-    headers![name] = value;
+    headers[name] = value;
   }
 }
 
