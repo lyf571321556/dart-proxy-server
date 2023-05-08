@@ -14,7 +14,7 @@ const int LocalPort = 3000;
 const String TargetUrl = 'https://api.ones.cn/';
 
 void main(List<String> arguments) async {
-  final argParser = new ArgParser()
+  final argParser = ArgParser()
     ..addOption('target', abbr: 't', defaultsTo: TargetUrl);
   final argResults = argParser.parse(arguments);
   final String targetUrl = argResults['target'];
